@@ -159,7 +159,7 @@ public class MyGoogleMap extends MapActivity
       updateWithNewLocation(mLocation01);
     }
 
-    locationManager.requestLocationUpdates(strLocationProvider, step, 10, locationListener); 
+    locationManager.requestLocationUpdates(strLocationProvider, 0, 0, locationListener); 
     
     preTime = System.currentTimeMillis();
     getMapLocations(true);
