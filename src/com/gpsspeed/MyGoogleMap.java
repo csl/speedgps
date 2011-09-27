@@ -159,7 +159,7 @@ public class MyGoogleMap extends MapActivity
       updateWithNewLocation(mLocation01);
     }
 
-    locationManager.requestLocationUpdates(strLocationProvider, step, 10, locationListener); 
+    locationManager.requestLocationUpdates(strLocationProvider, 0, 0, locationListener); 
     
     preTime = System.currentTimeMillis();
     getMapLocations(true);
@@ -302,12 +302,9 @@ public class MyGoogleMap extends MapActivity
     {
       long subTime=(System.currentTimeMillis()-preTime)/1000;
       
-      float v= (subTime==0 || preLocation==null)?0:(preLocation.distanceTo(location)/subTime);
+      //float v= (subTime==0 || preLocation==null)?0:(preLocation.distanceTo(location)/subTime);
       
-      if ( v != 0)
-        latLongString = v * 3.6 + " km/h, " + location.getSpeed();
-      else
-        latLongString = Double.toString(location.getSpeed());
+      latLongString = location.getSpeed() * 3.6 + " km/h";
 
       preLocation=location;
       preTime=System.currentTimeMillis();
