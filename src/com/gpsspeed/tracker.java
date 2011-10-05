@@ -42,19 +42,22 @@ import com.google.android.maps.MapView;
 //import com.google.android.maps.Overlay;
 //import com.google.android.maps.OverlayItem;
 
-public class MyGoogleMap extends MapActivity 
+public class tracker extends MapActivity 
 { 
   private static final int MSG_DIALOG_SAFE = 1;  
   private static final int MSG_DIALOG_OVERRANGE = 2;  
   
-  private static final int MENU_TRACK = Menu.FIRST;
-  private static final int MENU_EXIT = Menu.FIRST +1 ;
+  private static final int MENU_ESTART = Menu.FIRST;
+  private static final int MENU_EEXIT = Menu.FIRST +1 ;
+  private static final int MENU_EXIT = Menu.FIRST +2 ;
+  
+  private boolean startrec;
   
   private String TAG = "mapspeed";
   
-  static public MyGoogleMap my;
+  static public tracker my;
   
-  private MyGoogleMap mMyGoogleMap = this;
+  private tracker mMyGoogleMap = this;
   private Location mLocation01; 
 
   private Location preLocation;
@@ -68,7 +71,7 @@ public class MyGoogleMap extends MapActivity
   private MapController mMapController01; 
   private MapView mMapView; 
   
-  private MyOverLay overlay;
+  private OverLay overlay;
   private List<MapLocation> mapLocations;
   private String strLocationProvider = ""; 
 
@@ -76,7 +79,7 @@ public class MyGoogleMap extends MapActivity
   private int intZoomLevel=0;//geoLatitude,geoLongitude; 
   public GeoPoint nowGeoPoint;
   
-  private String speed;
+private String speed;
   
   public static  MapLocation mSelectedMapLocation;  
   public boolean mshow;
@@ -93,7 +96,7 @@ public class MyGoogleMap extends MapActivity
     mp = null;
     
     my = this;
-
+    startrec = false;
     //googleMAP
     mMapView = (MapView)findViewById(R.id.myMapView1); 
     mMapController01 = mMapView.getController(); 
@@ -169,7 +172,7 @@ public class MyGoogleMap extends MapActivity
     preTime = System.currentTimeMillis();
     getMapLocations(true);
     //建構畫在GoogleMap的overlay
-    overlay = new MyOverLay(this);
+    overlay = new OverLay(this);
     mMapView.getOverlays().add(overlay);
     //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());    
 
@@ -265,6 +268,8 @@ public class MyGoogleMap extends MapActivity
 
       if (nowGeoPoint != null)
       {
+        if (startrec == true)
+          overlay.addGeoPoint(nowGeoPoint);
         refreshMapViewByGeoPoint(nowGeoPoint, 
             mMapView, intZoomLevel); 
       }      
@@ -396,9 +401,11 @@ public class MyGoogleMap extends MapActivity
   {
     super.onCreateOptionsMenu(menu);
     
-    menu.add(0 , MENU_TRACK, 0 ,R.string.msg_tracker).setIcon(R.drawable.mappin_red)
+    menu.add(0 , MENU_ESTART, 0 ,"開始記錄").setIcon(R.drawable.mappin_red)
     .setAlphabeticShortcut('S');
-    menu.add(0 , MENU_EXIT, 0 ,R.string.msg_exit).setIcon(R.drawable.exit)
+    menu.add(0 , MENU_EEXIT, 1 ,"結束記錄").setIcon(R.drawable.exit)
+    .setAlphabeticShortcut('S');
+    menu.add(0 , MENU_EXIT, 2 ,"離開").setIcon(R.drawable.exit)
     .setAlphabeticShortcut('S');
     
     return true;  
@@ -409,16 +416,21 @@ public class MyGoogleMap extends MapActivity
   {
     switch (item.getItemId())
       { 
-        case MENU_TRACK:
-          Intent open = new Intent();
-          open.setClass(MyGoogleMap.this, tracker.class);
-          MyGoogleMap.this.finish();
-          startActivity(open);
-          
+        case MENU_ESTART:
+          overlay.clearGeoPoint();
+          overlay.setTracker(true);
+          startrec = true;
+          return true;
+        case MENU_EEXIT:
+          overlay.setTracker(false);
+          startrec = false;
           return true;
         case MENU_EXIT:
-          locationManager.removeUpdates(locationListener);
-          finish();     
+          Intent open = new Intent();
+          open.setClass(tracker.this, MyGoogleMap.class);
+          tracker.this.finish();
+          startActivity(open);
+          
           return true;
       }
     

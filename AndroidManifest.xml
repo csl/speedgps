@@ -18,6 +18,7 @@
         </activity>
         
       	<uses-library android:name="com.google.android.maps"/> 
+        <activity android:name="tracker"></activity>
     </application>
     <uses-sdk android:minSdkVersion="8" />
   <uses-permission 
