@@ -113,44 +113,10 @@ private String speed;
     intZoomLevel = 15; 
     mMapController01.setZoom(intZoomLevel); 
 
-    speed = "30";
+    speed = MyGoogleMap.speed;
+    
     mshow = false;
-    
-    //顯示輸入IP的windows
-    final EditText input = new EditText(mMyGoogleMap);
-    input.setText(speed);
-    AlertDialog.Builder alert = new AlertDialog.Builder(mMyGoogleMap);
-
     //openOptionsDialog(getLocalIpAddress());
-    
-    alert.setTitle("設定speed");
-    alert.setMessage("請輸入speed");
-    
-    // Set an EditText view to get user input 
-    alert.setView(input);
-    
-    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-    public void onClick(DialogInterface dialog, int whichButton) 
-    {
-      try
-      {
-        speed = input.getText().toString();
-      }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-      //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());
-    }
-    });
-
-    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int whichButton) {
-        // Canceled.
-      }
-    });
-
-    alert.show();      
     
     //mLocationManager01.requestLocationUpdates 
     //(strLocationProvider, 2000, 10, mLocationListener01); 
@@ -270,6 +236,7 @@ private String speed;
       {
         if (startrec == true)
           overlay.addGeoPoint(nowGeoPoint);
+        
         refreshMapViewByGeoPoint(nowGeoPoint, 
             mMapView, intZoomLevel); 
       }      
@@ -316,7 +283,7 @@ private String speed;
       
       latLongString = location.getSpeed() * 3.6 + " km/h";
       
-      if (Integer.valueOf(latLongString) > Integer.valueOf(speed))
+      if (location.getSpeed() * 3.6 > Integer.valueOf(speed))
       {
         //warning
         label.setTextColor(Color.RED);
@@ -330,7 +297,7 @@ private String speed;
       }
       else 
       {
-        label.setTextColor(Color.BLACK);
+        label.setTextColor(Color.WHITE);
         if (mp != null)
         {
           mp.stop_voice();
@@ -350,13 +317,6 @@ private String speed;
     label.setText(latLongString);
 }
  
-  @Override
-  protected void onDestroy(){
-      super.onDestroy();
-      //Kill myself
-      android.os.Process.killProcess(android.os.Process.myPid());
-  }
-  
   //更新現在位置
   public static void refreshMapViewByGeoPoint 
   (GeoPoint gp, MapView mapview, int zoomLevel) 
@@ -418,12 +378,12 @@ private String speed;
       { 
         case MENU_ESTART:
           overlay.clearGeoPoint();
-          overlay.setTracker(true);
           startrec = true;
+          overlay.setTracker(true);
           return true;
         case MENU_EEXIT:
-          overlay.setTracker(false);
           startrec = false;
+          overlay.setTracker(false);
           return true;
         case MENU_EXIT:
           Intent open = new Intent();

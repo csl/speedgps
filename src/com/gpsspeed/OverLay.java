@@ -217,8 +217,6 @@ public class OverLay  extends Overlay {
       drawNowGeoMap(canvas, mapView, shadow);
       //畫地圖座標
    		drawMapLocations(canvas, mapView, shadow);
-      //畫地圖GPS Range座標
-   		drawPointRange(canvas, mapView, shadow);
    		//畫tracker
    		drawTracker(canvas, mapView, shadow);
    		//drawInfoWindow(canvas, mapView, shadow);
@@ -272,47 +270,6 @@ public class OverLay  extends Overlay {
     	return hitMapLocation; 
     }
 
-    //draw range
-    private void drawPointRange(Canvas canvas, MapView mapView, boolean shadow) 
-    {
-      //若要求顯示才顯示
-      if (ReadyShowRange == true)
-      {
-        Log.i("FUCK", "draw...");
-        
-        Paint paint = new Paint();
-        Point myScreenCoords1 = new Point();
-        Point myScreenCoords2 = new Point();
-        Point myScreenCoords3 = new Point();
-        Point myScreenCoords4 = new Point();
-        
-        //calculate
-        GeoPoint top_left = gp.get(0);        
-        GeoPoint top_right =  gp.get(2);
-        GeoPoint bottom_left =  gp.get(3);
-        GeoPoint buttom_right = gp.get(1);        
-        
-        //將座標顯示上去
-        mapView.getProjection().toPixels(top_left, myScreenCoords1);
-        mapView.getProjection().toPixels(top_right, myScreenCoords2);
-        mapView.getProjection().toPixels(bottom_left, myScreenCoords3);
-        mapView.getProjection().toPixels(buttom_right, myScreenCoords4);
-        paint.setStrokeWidth(2);
-        paint.setARGB(255, 255, 0, 0);
-
-        canvas.drawLine((float) myScreenCoords1.x, (float) myScreenCoords1.y, (float) myScreenCoords2.x,
-            (float) myScreenCoords2.y, paint);
-        canvas.drawLine((float) myScreenCoords1.x, (float) myScreenCoords1.y, (float) myScreenCoords3.x,
-            (float) myScreenCoords3.y, paint);
-        canvas.drawLine((float) myScreenCoords2.x, (float) myScreenCoords2.y, (float) myScreenCoords4.x,
-            (float) myScreenCoords4.y, paint);
-        canvas.drawLine((float) myScreenCoords3.x, (float) myScreenCoords3.y, (float) myScreenCoords4.x,
-            (float) myScreenCoords4.y, paint);
-  
-      }
-    }
-    
-    
     private void drawNowGeoMap(Canvas canvas, MapView mapView, boolean shadow) 
     {
       //顯示現在位置

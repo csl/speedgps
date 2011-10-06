@@ -76,12 +76,14 @@ public class MyGoogleMap extends MapActivity
   private int intZoomLevel=0;//geoLatitude,geoLongitude; 
   public GeoPoint nowGeoPoint;
   
-  private String speed;
+  static public String speed;
   
   public static  MapLocation mSelectedMapLocation;  
   public boolean mshow;
    
   public TextView label;
+  
+  private int input_speed=0;
   
   @Override 
   protected void onCreate(Bundle icicle) 
@@ -110,45 +112,48 @@ public class MyGoogleMap extends MapActivity
     intZoomLevel = 15; 
     mMapController01.setZoom(intZoomLevel); 
 
-    speed = "30";
+    speed = "100";
     mshow = false;
     
-    //顯示輸入IP的windows
-    final EditText input = new EditText(mMyGoogleMap);
-    input.setText(speed);
-    AlertDialog.Builder alert = new AlertDialog.Builder(mMyGoogleMap);
-
-    //openOptionsDialog(getLocalIpAddress());
-    
-    alert.setTitle("設定speed");
-    alert.setMessage("請輸入speed");
-    
-    // Set an EditText view to get user input 
-    alert.setView(input);
-    
-    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-    public void onClick(DialogInterface dialog, int whichButton) 
+    if (input_speed == 0)
     {
-      try
+      input_speed = 1;
+      
+      final EditText input = new EditText(mMyGoogleMap);
+      input.setText(speed);
+      AlertDialog.Builder alert = new AlertDialog.Builder(mMyGoogleMap);
+  
+      //openOptionsDialog(getLocalIpAddress());
+      
+      alert.setTitle("設定speed");
+      alert.setMessage("請輸入speed");
+      
+      // Set an EditText view to get user input 
+      alert.setView(input);
+      
+      alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) 
       {
-        speed = input.getText().toString();
+        try
+        {
+          speed = input.getText().toString();
+        }
+        catch (Exception e)
+        {
+          e.printStackTrace();
+        }
+        //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());
       }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-      //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());
+      });
+  
+      alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int whichButton) {
+          // Canceled.
+        }
+      });
+  
+      alert.show();      
     }
-    });
-
-    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int whichButton) {
-        // Canceled.
-      }
-    });
-
-    alert.show();      
-    
     //mLocationManager01.requestLocationUpdates 
     //(strLocationProvider, 2000, 10, mLocationListener01); 
 
@@ -303,6 +308,7 @@ public class MyGoogleMap extends MapActivity
   private void updateWithNewLocation(Location location) 
   {
     String latLongString;
+    
     if (location != null) 
     {
       long subTime=(System.currentTimeMillis()-preTime)/1000;
@@ -311,7 +317,7 @@ public class MyGoogleMap extends MapActivity
       
       latLongString = location.getSpeed() * 3.6 + " km/h";
       
-      if (Integer.valueOf(latLongString) > Integer.valueOf(speed))
+      if (location.getSpeed() * 3.6 > Integer.valueOf(speed))
       {
         //warning
         label.setTextColor(Color.RED);
@@ -325,7 +331,7 @@ public class MyGoogleMap extends MapActivity
       }
       else 
       {
-        label.setTextColor(Color.BLACK);
+        label.setTextColor(Color.WHITE);
         if (mp != null)
         {
           mp.stop_voice();
@@ -349,7 +355,6 @@ public class MyGoogleMap extends MapActivity
   protected void onDestroy(){
       super.onDestroy();
       //Kill myself
-      android.os.Process.killProcess(android.os.Process.myPid());
   }
   
   //更新現在位置
@@ -411,6 +416,7 @@ public class MyGoogleMap extends MapActivity
       { 
         case MENU_TRACK:
           Intent open = new Intent();
+          locationManager.removeUpdates(locationListener); 
           open.setClass(MyGoogleMap.this, tracker.class);
           MyGoogleMap.this.finish();
           startActivity(open);
@@ -418,6 +424,7 @@ public class MyGoogleMap extends MapActivity
           return true;
         case MENU_EXIT:
           locationManager.removeUpdates(locationListener);
+          android.os.Process.killProcess(android.os.Process.myPid());
           finish();     
           return true;
       }
