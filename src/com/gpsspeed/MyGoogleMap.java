@@ -57,11 +57,8 @@ public class MyGoogleMap extends MapActivity
   private MyGoogleMap mMyGoogleMap = this;
   private Location mLocation01; 
 
-  private Location preLocation;
   private long preTime;
-  private static final int step=5000;
   private LocationManager locationManager;
-  private boolean status=false;
   
   private medplayer mp;
 
@@ -69,21 +66,18 @@ public class MyGoogleMap extends MapActivity
   private MapView mMapView; 
   
   private MyOverLay overlay;
-  private List<MapLocation> mapLocations;
   private String strLocationProvider = ""; 
 
-  private Button mButton01,mButton02,mButton03,mButton04,mButton05;
+  private Button mButton02,mButton03,mButton04;
   private int intZoomLevel=0;//geoLatitude,geoLongitude; 
   public GeoPoint nowGeoPoint;
   
-  static public String speed;
+  private String speed;
   
-  public static  MapLocation mSelectedMapLocation;  
   public boolean mshow;
    
   public TextView label;
-  
-  private int input_speed=0;
+  public TextView distance;
   
   @Override 
   protected void onCreate(Bundle icicle) 
@@ -93,7 +87,6 @@ public class MyGoogleMap extends MapActivity
     setContentView(R.layout.main2); 
 
     mp = null;
-    
     my = this;
 
     //googleMAP
@@ -102,7 +95,9 @@ public class MyGoogleMap extends MapActivity
 
     //訊息顯示
     label = (TextView) findViewById(R.id.cstaus);
-    
+    label = (TextView) findViewById(R.id.cstaus);
+    distance = (TextView) findViewById(R.id.distance);
+          
     //參數設定 
     mMapView.setSatellite(false);
     mMapView.setStreetView(true);
@@ -112,48 +107,45 @@ public class MyGoogleMap extends MapActivity
     intZoomLevel = 15; 
     mMapController01.setZoom(intZoomLevel); 
 
-    speed = "100";
+    speed = "30";
     mshow = false;
     
-    if (input_speed == 0)
+    //顯示輸入IP的windows
+    final EditText input = new EditText(mMyGoogleMap);
+    input.setText(speed);
+    AlertDialog.Builder alert = new AlertDialog.Builder(mMyGoogleMap);
+
+    //openOptionsDialog(getLocalIpAddress());
+    
+    alert.setTitle("設定speed");
+    alert.setMessage("請輸入speed");
+    
+    // Set an EditText view to get user input 
+    alert.setView(input);
+    
+    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+    public void onClick(DialogInterface dialog, int whichButton) 
     {
-      input_speed = 1;
-      
-      final EditText input = new EditText(mMyGoogleMap);
-      input.setText(speed);
-      AlertDialog.Builder alert = new AlertDialog.Builder(mMyGoogleMap);
-  
-      //openOptionsDialog(getLocalIpAddress());
-      
-      alert.setTitle("設定speed");
-      alert.setMessage("請輸入speed");
-      
-      // Set an EditText view to get user input 
-      alert.setView(input);
-      
-      alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int whichButton) 
+      try
       {
-        try
-        {
-          speed = input.getText().toString();
-        }
-        catch (Exception e)
-        {
-          e.printStackTrace();
-        }
-        //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());
+        speed = input.getText().toString();
       }
-      });
-  
-      alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int whichButton) {
-          // Canceled.
-        }
-      });
-  
-      alert.show();      
+      catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+      //mMapController01.setCenter(getMapLocations(true).get(0).getPoint());
     }
+    });
+
+    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+        // Canceled.
+      }
+    });
+
+    alert.show();      
+    
     //mLocationManager01.requestLocationUpdates 
     //(strLocationProvider, 2000, 10, mLocationListener01); 
 
@@ -164,6 +156,7 @@ public class MyGoogleMap extends MapActivity
     
     if (nowGeoPoint != null)
     {
+      overlay.addGeoPoint(nowGeoPoint);
       refreshMapViewByGeoPoint(nowGeoPoint, 
           mMapView, intZoomLevel); 
       updateWithNewLocation(mLocation01);
@@ -171,8 +164,6 @@ public class MyGoogleMap extends MapActivity
 
     locationManager.requestLocationUpdates(strLocationProvider, 0, 0, locationListener); 
     
-    preTime = System.currentTimeMillis();
-    getMapLocations(true);
     //建構畫在GoogleMap的overlay
     overlay = new MyOverLay(this);
     mMapView.getOverlays().add(overlay);
@@ -270,8 +261,16 @@ public class MyGoogleMap extends MapActivity
 
       if (nowGeoPoint != null)
       {
+        overlay.addGeoPoint(nowGeoPoint);
+
         refreshMapViewByGeoPoint(nowGeoPoint, 
             mMapView, intZoomLevel); 
+        
+        if (overlay.getGeoPoint(0) != null)
+        {
+          double gdistance = GetDistance(overlay.getGeoPoint(0), nowGeoPoint);
+          distance.setText(Double.toString(gdistance));
+        }
       }      
       
       updateWithNewLocation(location);
@@ -295,20 +294,10 @@ public class MyGoogleMap extends MapActivity
        
     } 
   }; 
-    
-  public List<MapLocation> getMapLocations(boolean doit) 
-  {
-    if (mapLocations == null || doit == true) 
-    {
-      mapLocations = new ArrayList<MapLocation>();
-    }
-    return mapLocations;
-  }
-  
+
   private void updateWithNewLocation(Location location) 
   {
     String latLongString;
-    
     if (location != null) 
     {
       long subTime=(System.currentTimeMillis()-preTime)/1000;
@@ -317,7 +306,7 @@ public class MyGoogleMap extends MapActivity
       
       latLongString = location.getSpeed() * 3.6 + " km/h";
       
-      if (location.getSpeed() * 3.6 > Integer.valueOf(speed))
+      if (Integer.valueOf(latLongString) > Integer.valueOf(speed))
       {
         //warning
         label.setTextColor(Color.RED);
@@ -331,7 +320,7 @@ public class MyGoogleMap extends MapActivity
       }
       else 
       {
-        label.setTextColor(Color.WHITE);
+        label.setTextColor(Color.BLACK);
         if (mp != null)
         {
           mp.stop_voice();
@@ -340,9 +329,7 @@ public class MyGoogleMap extends MapActivity
         
       }
 
-      preLocation=location;
-      preTime=System.currentTimeMillis();
-    } 
+   } 
     else {
       latLongString = "noGPS";
     }
@@ -355,6 +342,7 @@ public class MyGoogleMap extends MapActivity
   protected void onDestroy(){
       super.onDestroy();
       //Kill myself
+      android.os.Process.killProcess(android.os.Process.myPid());
   }
   
   //更新現在位置
@@ -401,8 +389,6 @@ public class MyGoogleMap extends MapActivity
   {
     super.onCreateOptionsMenu(menu);
     
-    menu.add(0 , MENU_TRACK, 0 ,R.string.msg_tracker).setIcon(R.drawable.mappin_red)
-    .setAlphabeticShortcut('S');
     menu.add(0 , MENU_EXIT, 0 ,R.string.msg_exit).setIcon(R.drawable.exit)
     .setAlphabeticShortcut('S');
     
@@ -414,17 +400,8 @@ public class MyGoogleMap extends MapActivity
   {
     switch (item.getItemId())
       { 
-        case MENU_TRACK:
-          Intent open = new Intent();
-          locationManager.removeUpdates(locationListener); 
-          open.setClass(MyGoogleMap.this, tracker.class);
-          MyGoogleMap.this.finish();
-          startActivity(open);
-          
-          return true;
         case MENU_EXIT:
           locationManager.removeUpdates(locationListener);
-          android.os.Process.killProcess(android.os.Process.myPid());
           finish();     
           return true;
       }
@@ -455,6 +432,26 @@ public class MyGoogleMap extends MapActivity
         super.handleMessage(msg);
     }
 };  
+
+private double ConvertDegreeToRadians(double degrees)
+{
+  return (Math.PI/180)*degrees;
+}
+
+public double GetDistance(GeoPoint gp1, GeoPoint gp2)
+{
+  double Lat1r = ConvertDegreeToRadians(gp1.getLatitudeE6()/1E6);
+  double Lat2r = ConvertDegreeToRadians(gp2.getLatitudeE6()/1E6);
+  double Long1r= ConvertDegreeToRadians(gp1.getLongitudeE6()/1E6);
+  double Long2r= ConvertDegreeToRadians(gp2.getLongitudeE6()/1E6);
+
+  double R = 6371;
+  double d = Math.acos(Math.sin(Lat1r)*Math.sin(Lat2r)+
+             Math.cos(Lat1r)*Math.cos(Lat2r)*
+             Math.cos(Long2r-Long1r))*R;
+  return d*1000;
+}
+
 
   //show message
   public void openOptionsDialog(String info)
